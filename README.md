@@ -8,7 +8,7 @@
 sky-take-out/
 ├── backend/
 │   ├── sky-server/      Spring Boot 接口服务、MyBatis 数据访问
-│   ├── sky-common/      鉴权、微信支付、对象存储等公共服务
+│   ├── sky-common/      鉴权、微信支付等公共服务
 │   ├── sky-pojo/        DTO、实体、接口响应模型
 │   ├── sky-agent-py/    Python 商家运营分析 Agent
 │   └── pom.xml          Java 多模块 Maven 入口
@@ -35,6 +35,8 @@ sky-take-out/
 启动脚本会在检测到 `uv` 时自动启动 `backend/sky-agent-py`，并让它连接同一端口的 Java 后端；没有 `uv` 时，经营参谋之外的页面功能仍可使用。也可以在该目录运行 `uv run uvicorn app.main:app --host 127.0.0.1 --port 8001` 单独启动它。
 
 本地开发后端使用项目原有的 MySQL `sky_take_out` 和 Redis `localhost:6379` 配置。启动脚本会在 Docker Engine 可用时通过根目录 `docker-compose.yml` 自动启动 Redis 和 RabbitMQ；Redis 是 Java 后端必需项，未启动时脚本会保留前端并跳过后端启动。RabbitMQ 不可用时，后端仍可启动并以同步建单模式运行；可单独运行 `docker compose up -d redis rabbitmq`。RabbitMQ 管理界面仅绑定到本机 `127.0.0.1:15672`。
+
+菜品和套餐图片保存在运行后端的机器磁盘，不使用 OSS，也不把二进制图片塞进 MySQL；商品表只保存 `/uploads/...` 图片路径。默认目录为项目运行目录下的 `.runtime/uploads`，部署到服务器时可通过 `SKY_UPLOAD_DIR` 指向持久化磁盘目录，并确保该目录有写权限。真实微信支付还需要配置 `WECHAT_APP_ID`、`WECHAT_APP_SECRET`、`WECHAT_MCH_ID`、`WECHAT_MCH_SERIAL_NO`、`WECHAT_PRIVATE_KEY_FILE`、`WECHAT_PLATFORM_CERT_FILE`、`WECHAT_API_V3_KEY`、`WECHAT_NOTIFY_URL` 和 `WECHAT_REFUND_NOTIFY_URL`；没有这些配置时，普通手机号注册账号仍可使用本地模拟付款。
 
 如只需打开前端设计稿和演示交互：
 

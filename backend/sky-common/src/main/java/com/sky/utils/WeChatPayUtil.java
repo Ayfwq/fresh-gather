@@ -16,10 +16,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.security.PrivateKey;
 import java.security.Signature;
@@ -50,12 +50,28 @@ public class WeChatPayUtil {
      * @return
      */
     private CloseableHttpClient getClient() {
-        PrivateKey merchantPrivateKey = null;
+        String privateKeyPath = weChatProperties.getPrivateKeyFilePath();
+        String platformCertificatePath = weChatProperties.getWeChatPayCertFilePath();
+        if (!StringUtils.hasText(weChatProperties.getAppid())
+                || !StringUtils.hasText(weChatProperties.getMchid())
+                || !StringUtils.hasText(weChatProperties.getMchSerialNo())
+                || !StringUtils.hasText(weChatProperties.getNotifyUrl())
+                || !StringUtils.hasText(privateKeyPath)
+                || !StringUtils.hasText(platformCertificatePath)) {
+            throw new IllegalStateException("微信支付配置不完整，请检查商户号和证书环境变量");
+        }
+        if (!new File(privateKeyPath).isFile() || !new File(platformCertificatePath).isFile()) {
+            throw new IllegalStateException("微信支付证书文件不存在，请检查证书路径");
+        }
+
         try {
-            //merchantPrivateKey商户API私钥，如何加载商户API私钥请看常见问题
-            merchantPrivateKey = PemUtil.loadPrivateKey(new FileInputStream(new File(weChatProperties.getPrivateKeyFilePath())));
-            //加载平台证书文件
-            X509Certificate x509Certificate = PemUtil.loadCertificate(new FileInputStream(new File(weChatProperties.getWeChatPayCertFilePath())));
+            PrivateKey merchantPrivateKey;
+            X509Certificate x509Certificate;
+            try (FileInputStream privateKeyInput = new FileInputStream(privateKeyPath);
+                 FileInputStream certificateInput = new FileInputStream(platformCertificatePath)) {
+                merchantPrivateKey = PemUtil.loadPrivateKey(privateKeyInput);
+                x509Certificate = PemUtil.loadCertificate(certificateInput);
+            }
             //wechatPayCertificates微信支付平台证书列表。你也可以使用后面章节提到的“定时更新平台证书功能”，而不需要关心平台证书的来龙去脉
             List<X509Certificate> wechatPayCertificates = Arrays.asList(x509Certificate);
 
@@ -66,9 +82,8 @@ public class WeChatPayUtil {
             // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签
             CloseableHttpClient httpClient = builder.build();
             return httpClient;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("无法读取微信支付证书文件", e);
         }
     }
 
