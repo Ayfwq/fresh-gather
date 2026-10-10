@@ -19,50 +19,29 @@ public class AliOssUtil {
     private String accessKeySecret;
     private String bucketName;
 
-    /**
-     * 文件上传
-     *
-     * @param bytes
-     * @param objectName
-     * @return
-     */
     public String upload(byte[] bytes, String objectName) {
-
-        // 创建OSSClient实例。
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
-
-        try {
-            // 创建PutObject请求。
-            ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(bytes));
-        } catch (OSSException oe) {
-            System.out.println("Caught an OSSException, which means your request made it to OSS, "
-                    + "but was rejected with an error response for some reason.");
-            System.out.println("Error Message:" + oe.getErrorMessage());
-            System.out.println("Error Code:" + oe.getErrorCode());
-            System.out.println("Request ID:" + oe.getRequestId());
-            System.out.println("Host ID:" + oe.getHostId());
-        } catch (ClientException ce) {
-            System.out.println("Caught an ClientException, which means the client encountered "
-                    + "a serious internal problem while trying to communicate with OSS, "
-                    + "such as not being able to access the network.");
-            System.out.println("Error Message:" + ce.getMessage());
-        } finally {
-            if (ossClient != null) {
-                ossClient.shutdown();
-            }
+        if (endpoint == null || endpoint.trim().isEmpty()
+                || accessKeyId == null || accessKeyId.trim().isEmpty()
+                || accessKeySecret == null || accessKeySecret.trim().isEmpty()
+                || bucketName == null || bucketName.trim().isEmpty()) {
+            throw new IllegalStateException("对象存储配置不完整，请检查环境变量");
         }
 
-        //文件访问路径规则 https://BucketName.Endpoint/ObjectName
-        StringBuilder stringBuilder = new StringBuilder("https://");
-        stringBuilder
-                .append(bucketName)
-                .append(".")
-                .append(endpoint)
-                .append("/")
-                .append(objectName);
+        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        try {
+            ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(bytes));
+        } catch (OSSException e) {
+            log.error("阿里云对象存储拒绝了文件上传，errorCode={}，requestId={}", e.getErrorCode(), e.getRequestId());
+            throw new IllegalStateException("对象存储上传失败，请检查配置", e);
+        } catch (ClientException e) {
+            log.error("连接阿里云对象存储失败，objectName={}", objectName);
+            throw new IllegalStateException("对象存储上传失败，请检查网络和配置", e);
+        } finally {
+            ossClient.shutdown();
+        }
 
-        log.info("文件上传到:{}", stringBuilder.toString());
-
-        return stringBuilder.toString();
+        // Support both endpoint forms, with or without the URL scheme.
+        String normalizedEndpoint = endpoint.replaceFirst("^https?://", "").replaceAll("/+$", "");
+        return "https://" + bucketName + "." + normalizedEndpoint + "/" + objectName;
     }
 }
