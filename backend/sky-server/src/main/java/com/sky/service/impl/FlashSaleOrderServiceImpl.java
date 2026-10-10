@@ -210,6 +210,7 @@ public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
                 .addressBookId(message.getAddressBookId())
                 .orderTime(LocalDateTime.now())
                 .payStatus(Orders.UN_PAID)
+                .payMethod(1)
                 .amount(activity.getSalePrice())
                 .remark(message.getRemark())
                 .userName(user.getName())
