@@ -1,0 +1,4 @@
+# Local browser development only. Do not activate webdev in production.
+server:
+  address: 127.0.0.1
+  port: 8080

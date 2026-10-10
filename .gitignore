@@ -1,0 +1,79 @@
+# IDE and operating system files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Java and Maven output
+**/target/
+*.class
+*.log
+hs_err_pid*
+
+# Frontend dependencies and generated output
+**/node_modules/
+**/dist/
+**/.vite/
+npm-debug.log*
+
+# Python virtual environments, caches, and coverage output
+**/.venv/
+**/venv/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local environment files; keep checked-in examples
+.env
+.env.*
+!.env.example
+!.env.*.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Machine-specific Spring configuration
+**/application-dev.yml
+**/application-dev.yaml
+**/application-local.yml
+**/application-local.yaml
+**/application-staging.yml
+**/application-staging.yaml
+**/application-prod.yml
+**/application-prod.yaml
+**/application-production.yml
+**/application-production.yaml
+**/application-*.local.yml
+**/application-*.local.yaml
+**/application-dev.properties
+**/application-local.properties
+**/application-staging.properties
+**/application-prod.properties
+**/application-production.properties
+**/*-secrets.yml
+**/*-secrets.yaml
+**/*-secrets.properties
+
+# Credentials, certificates, and local key stores
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Local runtime data and tool preferences
+.runtime/
+.claude/settings.local.json
+**/logs/
+*.pid
+*.dump
+*.bak
+*.backup
