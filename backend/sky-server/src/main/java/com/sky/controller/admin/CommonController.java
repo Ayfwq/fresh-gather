@@ -35,7 +35,10 @@ public class CommonController {
     @PostMapping("/upload")
     @ApiOperation("文件上传")
     public Result<String> upload(MultipartFile file){
-        log.info("文件上传：{}",file);
+        if (file == null || file.isEmpty() || file.getOriginalFilename() == null
+                || !file.getOriginalFilename().contains(".")) {
+            return Result.error(MessageConstant.UPLOAD_FAILED);
+        }
 
         try {
             //原始文件名
@@ -48,8 +51,8 @@ public class CommonController {
             //文件的请求路径
             String filePath = aliOssUtil.upload(file.getBytes(), objectName);
             return Result.success(filePath);
-        } catch (IOException e) {
-            log.error("文件上传失败：{}", e);
+        } catch (IOException | RuntimeException e) {
+            log.error("文件上传失败，filename={}", file.getOriginalFilename());
         }
 
         return Result.error(MessageConstant.UPLOAD_FAILED);
